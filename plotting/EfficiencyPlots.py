@@ -23,17 +23,21 @@ class EfficiencyPlots:
 
         self.eta_bins = np.linspace(-1.4, 1.4, 10)
         self.phi_bins = np.linspace(-np.pi, np.pi, 12)
-        self.energy_bins = np.linspace(0, 600, 10)
+        self.energy_bins = np.linspace(0, 600, 15)
 
         self.makePlot(cumulative=False)
         self.makePlot(cumulative=True)
+        for layer in range(0, 7):
+            self.makePlot(cumulative=False, layer=layer)
 
-    def makePlot(self, cumulative):
+    def makePlot(self, cumulative, layer=None):
         cumulative = int(cumulative)
         fig, axs = plt.subplots(1, 3, figsize=(30, 15))
         for cp_dict, k in zip(self.cp_dict_arr, range(0, len(self.cp_dict_arr))):
-            eta_eff, phi_eff, energy_eff = count(cp_dict)
-            
+            if (layer == None):
+                eta_eff, phi_eff, energy_eff = count(cp_dict, self.lc_dict_arr[k])
+            else:
+                eta_eff, phi_eff, energy_eff = countPerLayer(cp_dict, self.lc_dict_arr[k], layer)
               
             num_eta_counts, _ = np.histogram(eta_eff[0][cumulative], bins=self.eta_bins)            
             denom_eta_counts, _ = np.histogram(eta_eff[1], bins=self.eta_bins)            
@@ -82,20 +86,34 @@ class EfficiencyPlots:
                 else:
                     ax.annotate(text=self.annotate, xy=(ax.get_xlim()[1]*0.2, 0.4), fontsize=20)
 
-        if (cumulative) :
-            if (self.save != None and len(self.c) == 2):
-                fig.savefig(self.save+"efficiency_comparison_cumulative.pdf")
-            elif (self.save != None):
-                fig.savefig(self.save+"efficiency_cumulative.pdf")
+        if (layer == None):
+            if (cumulative) :
+                if (self.save != None and len(self.c) == 2):
+                    fig.savefig(self.save+"efficiency_comparison_cumulative.pdf")
+                elif (self.save != None):
+                    fig.savefig(self.save+"efficiency_cumulative.pdf")
+            else:
+                if (self.save != None and len(self.c) == 2):
+                    fig.savefig(self.save+"efficiency_comparison.pdf")
+                elif (self.save != None):
+                    fig.savefig(self.save+"efficiency.pdf")
+    
         else:
-            if (self.save != None and len(self.c) == 2):
-                fig.savefig(self.save+"efficiency_comparison.pdf")
-            elif (self.save != None):
-                fig.savefig(self.save+"efficiency.pdf")
+            if (cumulative) :
+                if (self.save != None and len(self.c) == 2):
+                    fig.savefig(self.save+"efficiency_comparison_cumulative_layer%s.pdf" % layer)
+                elif (self.save != None):
+                    fig.savefig(self.save+"efficiency_cumulative_layer%s.pdf" % layer)
+            else:
+                if (self.save != None and len(self.c) == 2):
+                    fig.savefig(self.save+"efficiency_comparison_layer%s.pdf" % layer)
+                elif (self.save != None):
+                    fig.savefig(self.save+"efficiency_layer%s.pdf" % layer)
 
         fig.clf()
 
-def count(cp_dict):
+
+def count(cp_dict, lc_dict):
     num_eta, denom_eta = [], []
     num_phi, denom_phi = [], []
     num_energy, denom_energy = [], []
@@ -105,9 +123,10 @@ def count(cp_dict):
         event = str(event+1)
         for cp in range(0, len(cp_dict[event]['CaloParticleEnergy'])):
             total_shared_energy = 0
-            if len(cp_dict[event]['CP2LCscore'][cp]) == 0 : continue
+            if (len(cp_dict[event]['CP2LCscore'][cp]) == 0) : continue
             denom_eta.append(cp_dict[event]['CaloParticleEta'][cp])
             denom_phi.append(cp_dict[event]['CaloParticlePhi'][cp])
+            #denom_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
             denom_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
             if len(cp_dict[event]['SharedEnergy'][cp]) == 0 : continue
             for energy in cp_dict[event]['SharedEnergy'][cp]:
@@ -124,3 +143,47 @@ def count(cp_dict):
                 cumulative_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
 
     return [[num_eta,cumulative_eta], denom_eta], [[num_phi, cumulative_phi], denom_phi], [[num_energy, cumulative_energy], denom_energy]
+
+def countPerLayer(cp_dict, lc_dict, layer):
+    num_eta, denom_eta = [], []                                                                                                            
+    num_phi, denom_phi = [], []
+    num_energy, denom_energy = [], []
+                                                                                                                                       
+    cumulative_eta, cumulative_phi, cumulative_energy = [], [], []
+    for event in range(0, len(cp_dict)):
+         event = str(event+1)
+         for cp in range(0, len(cp_dict[event]['CaloParticleEnergy'])):
+             total_shared_energy = 0
+             if (len(cp_dict[event]['CP2LCscore'][cp]) == 0) : continue
+             denom_eta.append(cp_dict[event]['CaloParticleEta'][cp])
+             denom_phi.append(cp_dict[event]['CaloParticlePhi'][cp])
+             denom_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
+             if len(cp_dict[event]['SharedEnergy'][cp]) == 0 : continue
+             for energy in cp_dict[event]['SharedEnergy'][cp]:
+                 total_shared_energy += energy / cp_dict[event]['CaloParticleEnergy'][cp]
+             max_shared_energy = max(cp_dict[event]['SharedEnergy'][cp])
+             arg_max_shared_energy = np.argmax(cp_dict[event]['SharedEnergy'][cp])
+             if (lc_dict[event]['LayerClustersLayer'][arg_max_shared_energy] != layer): continue
+             max_shared_energy /= cp_dict[event]['CaloParticleEnergy'][cp]
+             if max_shared_energy > 0.7:
+                 num_eta.append(cp_dict[event]['CaloParticleEta'][cp])         
+                 num_phi.append(cp_dict[event]['CaloParticlePhi'][cp])
+                 num_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
+             if total_shared_energy > 0.7:
+                 cumulative_eta.append(cp_dict[event]['CaloParticleEta'][cp])
+                 cumulative_phi.append(cp_dict[event]['CaloParticlePhi'][cp])
+                 cumulative_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
+                                                                                                                                           
+    return [[num_eta,cumulative_eta], denom_eta], [[num_phi, cumulative_phi], denom_phi], [[num_energy, cumulative_energy], denom_energy]
+
+
+
+
+
+
+
+
+
+
+
+ 
