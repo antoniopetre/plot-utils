@@ -113,7 +113,7 @@ class ClusterPlots:
                 for lc in lc_dict[event]['LayerClustersLayer']:
                     layer.append(lc)
             bin_content, _, _ = plt.hist(layer,
-                                         histtype="step", color=self.c[k], linewidth=4, label=self.legend[k], bins=6)
+                                         histtype="step", color=self.c[k], linewidth=4, label=self.legend[k], bins=list(range(0, 7,1)))
             binContent.append(max(bin_content))
         plt.grid(True)
         plt.xlabel("Layer")
