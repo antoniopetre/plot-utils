@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import mplhep as hep
+import numpy as np
 from seaborn import regplot
 
 from config.configuration import configuration
@@ -17,6 +18,7 @@ class ResponsePlot:
         self.c = c
         self.save = save
 
+        self.bins = np.linspace(0, 2, 20)
         self.makePlot()
         self.makeProfilePlot()
     
@@ -25,8 +27,8 @@ class ResponsePlot:
         fig2, ax2 = plt.subplots()
         for cp_dict, k in zip(self.cp_dict_arr, range(0, len(self.cp_dict_arr))):
             response, cumulative_response, cp_energy = self.getSharedEnergy(cp_dict)
-            bin_content1, _, _ = ax1.hist(response, histtype='step', linewidth=4, bins=20, label=self.legend[k], color=self.c[k])
-            bin_content2, _, _ = ax2.hist(cumulative_response, histtype='step', linewidth=4, bins=20, label=self.legend[k], color=self.c[k])
+            bin_content1, _, _ = ax1.hist(response, histtype='step', linewidth=4, bins=self.bins, label=self.legend[k], color=self.c[k], density=True)
+            bin_content2, _, _ = ax2.hist(cumulative_response, histtype='step', linewidth=4, bins=self.bins, label=self.legend[k], color=self.c[k], density=True)
         ax1.grid(True)
         ax2.grid(True)
         ax1.set_xlabel("Response")
