@@ -96,6 +96,7 @@ class ClusterPlots:
             binContent.append(max(bin_content))
         plt.grid(True)
         plt.xlabel("Energy [GeV]")
+        plt.yscale('log')
         hep.cms.text(text=configuration["cmsText"])
         plt.legend()
         
