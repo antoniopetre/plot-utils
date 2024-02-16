@@ -40,7 +40,8 @@ class FakeRatePlots:
            
             eta_ratio, eta_ratio_error = makeRatio(num_eta_counts, denom_eta_counts)
             eta_ratio_error = handleUncertainties(eta_ratio, eta_ratio_error)
-            eta_ratio = [1-r for r in eta_ratio]
+            if self.metric_label[metric][1] == "fakerate":
+                eta_ratio = [1-r for r in eta_ratio]
             axs[0].errorbar(self.eta_bins[:-1], \
                             eta_ratio, yerr=eta_ratio_error, \
                             fmt=".", markersize=20, color=self.c[k], \
@@ -53,7 +54,8 @@ class FakeRatePlots:
                                                                                             
             phi_ratio, phi_ratio_error = makeRatio(num_phi_counts, denom_phi_counts)
             phi_ratio_error = handleUncertainties(phi_ratio, phi_ratio_error)
-            phi_ratio = [1-r for r in phi_ratio]
+            if self.metric_label[metric][1] == "fakerate":
+                phi_ratio = [1-r for r in phi_ratio]
             axs[1].errorbar(self.phi_bins[:-1], \
                             phi_ratio, yerr=phi_ratio_error, \
                             fmt=".", markersize=20, color=self.c[k], \
@@ -66,7 +68,8 @@ class FakeRatePlots:
                                                                                             
             energy_ratio, energy_ratio_error = makeRatio(num_energy_counts, denom_energy_counts)
             energy_ratio_error = handleUncertainties(energy_ratio, energy_ratio_error)
-            energy_ratio = [1-r for r in energy_ratio]
+            if self.metric_label[metric][1] == "fakerate":
+                energy_ratio = [1-r for r in energy_ratio]
             axs[2].errorbar(self.energy_bins[:-1], \
                             energy_ratio, yerr=energy_ratio_error, \
                             fmt=".", markersize=20, color=self.c[k], \
