@@ -23,6 +23,7 @@ def fillLCDictionary(root_files_vec, isPF=False):
             events_dictionary[events_str]["AssociatedCP"] = fillVectorOfVectors(tree["AssociatedCP"].array()[event])
             events_dictionary[events_str]["LayerClustersLayer"] = fillVector(tree["layerClusterLayer"].array()[event])
             events_dictionary[events_str]["PUContamination"] = fillVector(tree["layerClusterPUContribution"].array()[event])
+            events_dictionary[events_str]["LayerClustersNHits"] = fillVector(tree["layerClusterNumberOfHits"].array()[event])
             if (configuration["DebugMode"]):
                 print(">>> LCDictionary: finished processing event %s" % events_idx)
             events_idx += 1

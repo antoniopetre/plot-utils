@@ -18,6 +18,7 @@ class ClusterPlots:
         self.clustersPhi()
         self.clustersEnergy()
         self.clustersLayer()
+        self.nHitsPerCluster()
 
     def nClustersPlot(self):
         binContent = []
@@ -124,4 +125,24 @@ class ClusterPlots:
         if (self.save != None):
             plt.savefig(self.save+"clustersLayer.pdf")
 
+        plt.clf()
+
+    def nHitsPerCluster(self):
+        binContent = []
+        for lc_dict, k in zip(self.lc_dict_arr, range(0, len(self.lc_dict_arr))):
+            nHits = []
+            for event in range(0, len(lc_dict)):
+                event = str(event+1)
+                for lc in lc_dict[event]['LayerClustersNHits']:
+                    nHits.append(lc)
+            bin_content, _, _ = plt.hist(nHits, histtype="step", color=self.c[k], linewidth=4, label=self.legend[k], bins=list(range(0, 50, 1)))
+            binContent.append(max(bin_content))
+        plt.grid(True)
+        plt.xlabel("Number of hits per cluster")
+        hep.cms.text(text=configuration["cmsText"])
+        plt.legend()
+
+        if (self.save != None):
+            plt.savefig(self.save+"clustersNHits.pdf")
+        
         plt.clf()
