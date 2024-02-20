@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import mplhep as hep
 from seaborn import regplot
 from config.configuration import configuration
@@ -13,16 +14,17 @@ class PUContaminationPlot:
         self.save = save
 
         self.makePlot()
-        self.makeProfilePlot()
+        #self.makeProfilePlot()
 
     def makePlot(self):
         fig1, ax1 = plt.subplots()
         for lc_dict, k in zip(self.lc_dict_arr, range(0, len(self.lc_dict_arr))):
             pu_contamination, lc_energy = self.getPUContamination(lc_dict)
-            bin_content1, _, _ = ax1.hist(pu_contamination, histtype='step', linewidth=4, bins=20, label=self.legend[k], color=self.c[k])
+            bin_content1, _, _ = ax1.hist(pu_contamination, histtype='step', linewidth=4, bins=np.linspace(0., 0.5, 20), label=self.legend[k], color=self.c[k])
         ax1.grid(True)
         ax1.set_xlabel("PU Contamination")
         ax1.legend()
+        ax1.set_xlim(0, 0.3)
         hep.cms.text(text=configuration["cmsText"], ax=ax1)
         ax1.annotate(self.annotate, xy=(0.1, max(bin_content1)*1.1))
                                                                                                                                                
@@ -53,7 +55,7 @@ class PUContaminationPlot:
             for lc in range(0, len(lc_dict[event]['PUContamination'])):
                 already_matched = False
                 for score in lc_dict[event]['LC2CPscore'][lc]:
-                    if score < 0.2 and not already_matched:
+                    if score < 0.2:
                         pu_contamination.append(lc_dict[event]['PUContamination'][lc])
                         lc_energy.append(lc_dict[event]['LayerClustersEnergy'][lc])
                         already_matched = True
