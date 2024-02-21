@@ -2,6 +2,7 @@ from utils.fillVectors import fillVector, fillVectorOfVectors
 from config.configuration import configuration
 import uproot
 from numba import njit
+from tqdm import tqdm
 
 def fillLCDictionary(root_files_vec, isPF=False):
     tree_string = "lcDumper/layerclusters"
@@ -10,7 +11,11 @@ def fillLCDictionary(root_files_vec, isPF=False):
 
     events_dictionary = {}
     events_idx = 0
-    for root_file in root_files_vec:
+    pf = ""
+    if isPF:
+        pf = "PF"
+    print(">>> Preparing %sLCDictionaries" % pf)
+    for root_file in tqdm(root_files_vec):
         f = uproot.open(root_file)
         tree = f[tree_string]
         for event in range(0, len(tree["layerClusterEnergy"].array())):
@@ -24,8 +29,6 @@ def fillLCDictionary(root_files_vec, isPF=False):
             events_dictionary[events_str]["LayerClustersLayer"] = fillVector(tree["layerClusterLayer"].array()[event])
             events_dictionary[events_str]["PUContamination"] = fillVector(tree["layerClusterPUContribution"].array()[event])
             events_dictionary[events_str]["LayerClustersNHits"] = fillVector(tree["layerClusterNumberOfHits"].array()[event])
-            if (configuration["DebugMode"]):
-                print(">>> LCDictionary: finished processing event %s" % events_idx)
             events_idx += 1
     return events_dictionary
 
@@ -36,7 +39,11 @@ def fillCPDictionary(root_files_vec, isPF=False):
 
     events_dictionary = {}
     events_idx = 0
-    for root_file in root_files_vec:
+    pf = ""
+    if isPF:
+        pf = "PF"
+    print(">>> Preparing %sCPDictionaries" % pf)
+    for root_file in tqdm(root_files_vec):
         f = uproot.open(root_file)
         tree = f[tree_string]
         for event in range(0, len(tree["caloParticleEnergy"].array())):
@@ -49,8 +56,6 @@ def fillCPDictionary(root_files_vec, isPF=False):
             events_dictionary[events_str]["AssociatedLC"] = fillVectorOfVectors(tree["AssociatedLC"].array()[event])
             events_dictionary[events_str]["SharedEnergy"] = fillVectorOfVectors(tree["sharedEnergy"].array()[event])
             #events_dictionary[events_str]["BunchCrossing"] = fillVector(tree["caloParticleBX"].array()[event])
-            if (configuration["DebugMode"]):
-                print(">>> CPDictionary: finished processing event %s" % events_idx)
             events_idx += 1
     return events_dictionary
 
@@ -61,7 +66,11 @@ def fillSCDictionary(root_files_vec, isPF=False):
 
     events_dictionary = {}
     events_idx = 0
-    for root_file in root_files_vec:
+    pf = ""
+    if isPF:
+        pf = "PF"
+    print(">>> Preparing %sSCDictionaries" % s)
+    for root_file in tqdm(root_files_vec):
         f = uproot.open(root_file)
         tree = f[tree_string]
         for event in range(0, len(tree["simClusterEnergy"].array())):
@@ -74,7 +83,5 @@ def fillSCDictionary(root_files_vec, isPF=False):
             events_dictionary[events_str]["AssociatedLC"] = fillVectorOfVectors(tree["AssociatedLC"].array()[event])
             events_dictionary[events_str]["SimClusterLayer"] = fillVector(tree["simClusterLayer"].array()[event])
             events_dictionary[events_str]["SharedEnergy"] = fillVectorOfVectors(tree["sharedEnergy"].array()[event])
-            if (configuration["DebugMode"]):
-                print(">>> SCDictionary: finished processing event %s" % events_idx)
             events_idx += 1
     return events_dictionary
