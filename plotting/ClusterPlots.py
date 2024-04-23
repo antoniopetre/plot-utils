@@ -3,92 +3,31 @@ import mplhep as hep
 from config.configuration import configuration
 import awkward as ak
 import numpy as np
+import os
 
 class ClusterPlots:
     def __init__(self, lc_dict_arr, lcpf_dict, legend=None, c=["red", "black"], annotate=None,
-                        save=None, debug=None, recHits=None):
+                        save=None, caloP=None, recHits=None):
         self.lc_dict_arr = lc_dict_arr
         self.lcpf_dict_arr = lcpf_dict
         self.legend = legend
         self.c = c
         self.annotate = annotate
-        self.save = save
-        self.debug = debug
+        self.save = save + '/ClusterPlots/'
+
+        # Create the directory
+        if not os.path.exists(self.save):
+                # Create the directory
+                os.makedirs(self.save)
+
+        self.caloP = caloP
         self.recHits = recHits
         self.makePlot()
         
     def makePlot(self):
-        # 1st plot nClustersPerEvent
-        nClustersPerEvent_lc = ak.count(self.lc_dict_arr['layerClusterEnergy'], axis=1)
-        nClustersPerEvent_lcpf = ak.count(self.lcpf_dict_arr['layerClusterEnergy'], axis=1)
-        
 
         binsEta, _ = np.linspace(start=-1.5, stop=1.5, retstep=0.0175)
         binsPhi, _ = np.linspace(start=-np.pi, stop=np.pi, retstep=0.0175)
-
-        clustersEta = ak.flatten(self.lc_dict_arr['layerClusterEta']).to_numpy()
-        clustersPhi = ak.flatten(self.lc_dict_arr['layerClusterPhi']).to_numpy()
-        self.hist_2d(clustersEta, clustersPhi, xlabel='LC ETA', ylabel='LC PHI',
-                title='',
-                pdf_name='abc.png', logY=False, binning=(binsEta, binsPhi))
-
-        mask = nClustersPerEvent_lc == 0
-        mask2 = nClustersPerEvent_lc > 0
-        caloEta_masked = ak.flatten(self.debug['caloParticleEta'][mask]).to_numpy()
-        caloPhi_masked = ak.flatten(self.debug['caloParticlePhi'][mask]).to_numpy()
-        self.hist_2d(caloEta_masked, caloPhi_masked, xlabel='CaloP ETA',
-                ylabel='CaloP PHI', title='CaloP when #LC = 0',
-                pdf_name='eta_phi_masked.png', logY=False, binning=(binsEta, binsPhi))
-
-        self.hist_2d(caloEta_masked, ak.flatten(self.debug['caloParticleEnergy'][mask]).to_numpy(), xlabel='CaloP ETA',
-                ylabel='CaloP Energy', title='CaloP when #LC = 0',
-                pdf_name='eta_En_masked.png', logY=False, binning=(binsEta, np.array([50,75,100,150,200,250,350,500])))
-
-
-        recHitsEta = ak.flatten(self.recHits['pfrechitEta']).to_numpy()
-        recHitsPhi = ak.flatten(self.recHits['pfrechitPhi']).to_numpy()
-        self.hist_2d(recHitsEta, recHitsPhi, xlabel='RecHits ETA',
-                ylabel='RecHits PHI', title='',
-                pdf_name='eta_phi_recHits.png', logY=False, binning=(binsEta, binsPhi))
-
-        recHitsEta_masked = ak.flatten(self.recHits['pfrechitEta'][mask]).to_numpy()
-        recHitsPhi_masked = ak.flatten(self.recHits['pfrechitPhi'][mask]).to_numpy()
-        self.hist_2d(recHitsEta_masked, recHitsPhi_masked,
-                xlabel='RecHits ETA', ylabel='RecHits PHI', title='RecHits when #LC = 0',
-                pdf_name='eta_phi_recHits_masked.png', logY=False, binning=(binsEta, binsPhi))
-        
-        self.plot_hist1d_debug(ak.flatten(self.debug['caloParticleEnergy'][mask]),
-                xlabel='Energy', pdf_name='caloParticlesEnergy_masked.png')
-        self.plot_hist1d_debug(ak.flatten(self.debug['caloParticleEta'][mask]),
-                xlabel=r'\eta', pdf_name='caloParticlesEta_masked.png')
-        self.plot_hist1d_debug(ak.flatten(self.debug['caloParticlePhi'][mask]),
-                xlabel=r'\phi', pdf_name='caloParticlesPhi_masked.png')
-
-        x = self.debug['caloParticleEnergy'][mask]
-        y = self.debug['caloParticleEta'][mask]
-        CaloPhi_masked = self.debug['caloParticlePhi'][mask]
-
-        No_total_ev = len(self.lc_dict_arr['layerClusterNumberOfHits'])
-
-        En_cut = 50
-        mask_new0 = x > En_cut
-        no_events0 = ak.count_nonzero(mask_new0)
-        string0 = f'1st cut: # LC/event = 0 \n 2nd cut: En of CaloP > {En_cut} \n {no_events0}/{No_total_ev} events'
-        self.plot_hist1d_debug(ak.flatten(x[mask_new0]), xlabel='CaloParticle Energy',
-                            pdf_name='caloParticlesEnergy_masked1.png', annotate=string0)
-        self.plot_hist1d_debug(ak.flatten(y[mask_new0]), xlabel=r'CaloParticle \eta',
-                            pdf_name='caloParticlesEta_masked1.png', annotate=string0)
-
-        eta_cut = 0.2
-        mask_new1 = np.abs(ak.flatten(y).to_numpy()) > eta_cut
-        no_events1 = np.count_nonzero(mask_new1)
-        string1 = f'1st cut: # LC/event = 0 \n 2nd cut: abs(eta) of CaloP > {eta_cut} \n {no_events1}/{No_total_ev} events'
-        self.plot_hist1d_debug(ak.flatten(x)[mask_new1], xlabel='CaloParticle Energy',
-                            pdf_name='caloParticlesEnergy_masked2.png', annotate=string1)
-        self.plot_hist1d_debug(ak.flatten(y)[mask_new1], xlabel=r'CaloParticle \eta',
-                            pdf_name='caloParticlesEta_masked2.png', annotate=string1)
-        self.plot_hist1d(nClustersPerEvent_lc, nClustersPerEvent_lcpf,
-                        xlabel='Number of clusters per event', pdf_name='nClustersPerEvent.pdf', binning=50, range=None)
 
         # 2nd plot clustersEta
         self.plot_hist1d(ak.flatten(self.lc_dict_arr['layerClusterEta']),
@@ -121,14 +60,14 @@ class ClusterPlots:
         self.lcpf_dict_arr['recoToSimAssociation'] = ak.fill_none(self.lcpf_dict_arr['recoToSimAssociation'], 2)
         self.lcpf_dict_arr['recoToSimAssociation'] = ak.flatten(self.lcpf_dict_arr['recoToSimAssociation'], axis=2)
 
-        phi_diff = self.lcpf_dict_arr['layerClusterPhi'] - self.debug['caloParticlePhi'][:, np.newaxis]
+        phi_diff = self.lcpf_dict_arr['layerClusterPhi'] - self.caloP['caloParticlePhi'][:, np.newaxis]
         phi_diff_correct = np.pi - abs(abs(phi_diff) - np.pi)
 
         print(phi_diff_correct)
         print(ak.min(phi_diff_correct))
         print(ak.max(phi_diff_correct))
 
-        deltaR_caloP_PF_all = (self.lcpf_dict_arr['layerClusterEta'] - self.debug['caloParticleEta'][:, np.newaxis])**2 + \
+        deltaR_caloP_PF_all = (self.lcpf_dict_arr['layerClusterEta'] - self.caloP['caloParticleEta'][:, np.newaxis])**2 + \
                             phi_diff_correct**2
 
         self.hist_2d(np.sqrt(ak.flatten(deltaR_caloP_PF_all, axis=None).to_numpy()),
@@ -166,10 +105,10 @@ class ClusterPlots:
                     xlabel='PF ETA', ylabel='PF Energy [GeV]', title=f'PF where reco2Sim > {min_reco_to_sim}',
                     pdf_name='reco2Sim_PFEtaEn.png', logY=False, binning=(binsEta, [0,2,4,6,8,10]))
 
-        phi_diff_maskedReco2Sim = self.lcpf_dict_arr['layerClusterPhi'][mask_reco_to_sim] - self.debug['caloParticlePhi'][mask_reco_to_sim_perEvent][:, np.newaxis]
+        phi_diff_maskedReco2Sim = self.lcpf_dict_arr['layerClusterPhi'][mask_reco_to_sim] - self.caloP['caloParticlePhi'][mask_reco_to_sim_perEvent][:, np.newaxis]
         phi_diff_maskedReco2Sim_correct = np.pi - abs(abs(phi_diff_maskedReco2Sim) - np.pi)
 
-        deltaR_caloP_PF = (self.lcpf_dict_arr['layerClusterEta'][mask_reco_to_sim] - self.debug['caloParticleEta'][mask_reco_to_sim_perEvent][:, np.newaxis])**2 + \
+        deltaR_caloP_PF = (self.lcpf_dict_arr['layerClusterEta'][mask_reco_to_sim] - self.caloP['caloParticleEta'][mask_reco_to_sim_perEvent][:, np.newaxis])**2 + \
                             phi_diff_maskedReco2Sim_correct**2
 
         deltaR_caloP_PF = ak.flatten(deltaR_caloP_PF, axis=1)
@@ -193,20 +132,13 @@ class ClusterPlots:
         mask_PFCluster_En = self.lcpf_dict_arr['layerClusterEnergy'] > min_En
         mask_PFCluster_En_perEvent = ak.any(mask_PFCluster_En, axis=1) # check if there is any true per event
 
-        #print(mask_PFCluster_En)
-       # print(mask_PFCluster_En_perEvent)
-        #print(self.lcpf_dict_arr['layerClusterPhi'])
-        #print(self.lcpf_dict_arr['layerClusterPhi'][mask_PFCluster_En])
-        #print(self.lcpf_dict_arr['layerClusterPhi'][mask_PFCluster_En][mask_PFCluster_En_perEvent])
-        #print(self.debug['caloParticlePhi'][mask_PFCluster_En_perEvent])
-
         # self.lcpf_dict_arr['layerClusterPhi'][mask_PFCluster_En][mask_PFCluster_En_perEvent] -> because
         # without the last mask (perEvent) -> there are still left some events with 0 PF clusters: []
         # to remove these empty lists -> attach last mask
-        phi_diff_EnCut = self.lcpf_dict_arr['layerClusterPhi'][mask_PFCluster_En][mask_PFCluster_En_perEvent] - self.debug['caloParticlePhi'][mask_PFCluster_En_perEvent][:, np.newaxis]
+        phi_diff_EnCut = self.lcpf_dict_arr['layerClusterPhi'][mask_PFCluster_En][mask_PFCluster_En_perEvent] - self.caloP['caloParticlePhi'][mask_PFCluster_En_perEvent][:, np.newaxis]
         phi_diff_EnCut_correct = np.pi - abs(abs(phi_diff_EnCut) - np.pi)
 
-        deltaR_caloP_PF_EnCut = (self.lcpf_dict_arr['layerClusterEta'][mask_PFCluster_En][mask_PFCluster_En_perEvent] - self.debug['caloParticleEta'][mask_PFCluster_En_perEvent][:, np.newaxis])**2 + \
+        deltaR_caloP_PF_EnCut = (self.lcpf_dict_arr['layerClusterEta'][mask_PFCluster_En][mask_PFCluster_En_perEvent] - self.caloP['caloParticleEta'][mask_PFCluster_En_perEvent][:, np.newaxis])**2 + \
                             phi_diff_EnCut_correct**2
 
         self.hist_2d(np.sqrt(ak.flatten(deltaR_caloP_PF_EnCut, axis=None).to_numpy()),

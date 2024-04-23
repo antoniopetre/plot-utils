@@ -56,7 +56,7 @@ if __name__ == "__main__":
                     save=configuration["SaveDirectory"], caloP=cp_dict, recHits=pfRec_dict)
 
     ClusterPlots(lc_dict, lcpf_dict, legend=["LayerCluster", "PFClusters"], c=["red", "black"],
-                    save=configuration["SaveDirectory"], debug=cp_dict, recHits=pfRec_dict)
+                    save=configuration["SaveDirectory"], caloP=cp_dict, recHits=pfRec_dict)
     
     exit(0)
     
