@@ -6,6 +6,8 @@ from utils.makeRatio import makeRatio
 from utils.handleUncertainties import handleUncertainties
 from config.configuration import configuration
 
+import awkward as ak
+
 class FakeRatePlots:
     def __init__ (self,
                   lc_dict_arr, cp_dict_arr,
@@ -35,8 +37,8 @@ class FakeRatePlots:
         for lc_dict, k in zip(self.lc_dict_arr, range(0, len(self.lc_dict_arr))):
             eta_fake, phi_fake, energy_fake = count(lc_dict)
         
-            num_eta_counts, _ = np.histogram(eta_fake[0][metric], bins=self.eta_bins)            
-            denom_eta_counts, _ = np.histogram(eta_fake[1], bins=self.eta_bins)            
+            num_eta_counts, _ = np.histogram(ak.flatten(eta_fake[0][metric]), bins=self.eta_bins)            
+            denom_eta_counts, _ = np.histogram(ak.flatten(eta_fake[1]), bins=self.eta_bins)            
            
             eta_ratio, eta_ratio_error = makeRatio(num_eta_counts, denom_eta_counts)
             eta_ratio_error = handleUncertainties(eta_ratio, eta_ratio_error)
@@ -49,8 +51,8 @@ class FakeRatePlots:
             axs[0].set_xlabel(r"$\eta$")
             axs[0].set_xlim(-1.2, 1.2) 
        
-            num_phi_counts, _ = np.histogram(phi_fake[0][metric], bins=self.phi_bins)            
-            denom_phi_counts, _ = np.histogram(phi_fake[1], bins=self.phi_bins)            
+            num_phi_counts, _ = np.histogram(ak.flatten(phi_fake[0][metric]), bins=self.phi_bins)            
+            denom_phi_counts, _ = np.histogram(ak.flatten(phi_fake[1]), bins=self.phi_bins)            
                                                                                             
             phi_ratio, phi_ratio_error = makeRatio(num_phi_counts, denom_phi_counts)
             phi_ratio_error = handleUncertainties(phi_ratio, phi_ratio_error)
@@ -63,8 +65,8 @@ class FakeRatePlots:
             axs[1].set_xlabel(r"$\phi$")
             axs[1].set_xlim(-np.pi, np.pi) 
 
-            num_energy_counts, _ = np.histogram(energy_fake[0][metric], bins=self.energy_bins)            
-            denom_energy_counts, _ = np.histogram(energy_fake[1], bins=self.energy_bins)            
+            num_energy_counts, _ = np.histogram(ak.flatten(energy_fake[0][metric]), bins=self.energy_bins)            
+            denom_energy_counts, _ = np.histogram(ak.flatten(energy_fake[1]), bins=self.energy_bins)            
                                                                                             
             energy_ratio, energy_ratio_error = makeRatio(num_energy_counts, denom_energy_counts)
             energy_ratio_error = handleUncertainties(energy_ratio, energy_ratio_error)
@@ -101,24 +103,47 @@ def count(lc_dict):
     num_energy, denom_energy = [], []
 
     num_merge_eta, num_merge_phi, num_merge_energy = [], [], []
-    for event in range(0, len(lc_dict)):
-        event = str(event+1)
-        for lc in range(len(lc_dict[event]['layerClusterEnergy'])):
-            if len(lc_dict[event]['recoToSimAssociation'][lc]) == 0 : continue
-            n_associated_cps = 0
-            denom_eta.append(lc_dict[event]['layerClusterEta'][lc])
-            denom_phi.append(lc_dict[event]['layerClusterPhi'][lc])
-            denom_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
-            for score in lc_dict[event]['recoToSimAssociation'][lc]:
-                if score < 0.2:
-                    n_associated_cps += 1
-            if n_associated_cps > 0:
-                num_eta.append(lc_dict[event]['layerClusterEta'][lc])         
-                num_phi.append(lc_dict[event]['layerClusterPhi'][lc])
-                num_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
-                if n_associated_cps > 1:
-                    num_merge_eta.append(lc_dict[event]['layerClusterEta'][lc])
-                    num_merge_phi.append(lc_dict[event]['layerClusterPhi'][lc])
-                    num_merge_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
+
+    n_associated_cps = 0
+    denom_eta = lc_dict['layerClusterEta'] 
+    denom_phi = lc_dict['layerClusterPhi'] 
+    denom_energy = lc_dict['layerClusterEnergy']
+
+    score_lowerThan02 = lc_dict['recoToSimAssociation'] < 0.2
+    no_associatedLcs = ak.count_nonzero(score_lowerThan02, axis=2)
+
+    # min associated cps = 0
+    min_associated_cps = ak.count_nonzero(no_associatedLcs, axis=1) > 0
+    num_eta = lc_dict['layerClusterEta'][min_associated_cps]
+    num_phi = lc_dict['layerClusterPhi'][min_associated_cps]
+    num_energy = lc_dict['layerClusterEnergy'][min_associated_cps]
+
+    # min associated cps = 1
+    min_associated_cps = ak.count_nonzero(no_associatedLcs, axis=1) > 1
+    num_merge_eta = lc_dict['layerClusterEta'][min_associated_cps]
+    num_merge_phi = lc_dict['layerClusterPhi'][min_associated_cps]
+    num_merge_energy = lc_dict['layerClusterEnergy'][min_associated_cps]
+
+
+    if False:
+        for event in range(0, len(lc_dict)):
+            event = str(event+1)
+            for lc in range(len(lc_dict[event]['layerClusterEnergy'])):
+                if len(lc_dict[event]['recoToSimAssociation'][lc]) == 0 : continue
+                n_associated_cps = 0
+                denom_eta.append(lc_dict[event]['layerClusterEta'][lc])
+                denom_phi.append(lc_dict[event]['layerClusterPhi'][lc])
+                denom_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
+                for score in lc_dict[event]['recoToSimAssociation'][lc]:
+                    if score < 0.2:
+                        n_associated_cps += 1
+                if n_associated_cps > 0:
+                    num_eta.append(lc_dict[event]['layerClusterEta'][lc])         
+                    num_phi.append(lc_dict[event]['layerClusterPhi'][lc])
+                    num_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
+                    if n_associated_cps > 1:
+                        num_merge_eta.append(lc_dict[event]['layerClusterEta'][lc])
+                        num_merge_phi.append(lc_dict[event]['layerClusterPhi'][lc])
+                        num_merge_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
 
     return [[num_eta, num_merge_eta], denom_eta], [[num_phi, num_merge_phi], denom_phi], [[num_energy, num_merge_energy], denom_energy]

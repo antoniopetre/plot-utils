@@ -12,6 +12,7 @@ from plotting.FakeRatePlots import FakeRatePlots
 from plotting.ResponsePlot import ResponsePlot
 from plotting.PUContaminationPlot import PUContaminationPlot
 from plotting.ClusterPlots import ClusterPlots
+from plotting.events_0LCPlots import Events_0LCPlots
 
 from config.configuration import configuration
 
@@ -23,6 +24,11 @@ if __name__ == "__main__":
     files = list(os.listdir(dir_string))
     files = [dir_string+f for f in files]
     files_vec.extend(files)
+
+    for fileName in files_vec:
+        if fileName.endswith('.root'):
+            continue
+        files_vec.remove(fileName)
    
     if (configuration["DebugMode"]):
         print(">>> Running in DebugMode")
@@ -46,8 +52,13 @@ if __name__ == "__main__":
 
     print(">>> Dictionaries ready; elapsed time: {:.2f} seconds".format(stop-start))
 
+    Events_0LCPlots(lc_dict, lcpf_dict, legend=["LayerCluster", "PFClusters"], c=["red", "black"],
+                    save=configuration["SaveDirectory"], caloP=cp_dict, recHits=pfRec_dict)
+
     ClusterPlots(lc_dict, lcpf_dict, legend=["LayerCluster", "PFClusters"], c=["red", "black"],
                     save=configuration["SaveDirectory"], debug=cp_dict, recHits=pfRec_dict)
+    
+    exit(0)
     
     if (doPFComparison):
         EfficiencyPlots([lc_dict, lcpf_dict], [cp_dict, cppf_dict],\

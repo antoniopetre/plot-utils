@@ -35,17 +35,17 @@ class PurityPlots:
         for cp_dict, k in zip(self.cp_dict_arr, range(0, len(self.cp_dict_arr))):
             eta_pur, phi_pur, energy_pur = count(cp_dict, No_min_associatedLcs)
         
-            print(f'No_min_associatedLcs={No_min_associatedLcs}')
+            #print(f'No_min_associatedLcs={No_min_associatedLcs}')
             check_no_outside1 = ak.flatten(eta_pur[0]) > 1.4
             check_no_outside2 = ak.flatten(eta_pur[0]) < -1.4
-            print(f'no_outside1={ak.count_nonzero(check_no_outside1)}')
-            print(f'no_outside2={ak.count_nonzero(check_no_outside2)}')
+            #print(f'no_outside1={ak.count_nonzero(check_no_outside1)}')
+            #print(f'no_outside2={ak.count_nonzero(check_no_outside2)}')
 
             num_eta_counts, _ = np.histogram(ak.flatten(eta_pur[0]), bins=self.eta_bins)            
             denom_eta_counts, _ = np.histogram(ak.flatten(eta_pur[1]), bins=self.eta_bins)            
            
-            print(num_eta_counts)
-            print(denom_eta_counts)
+            #print(num_eta_counts)
+            #print(denom_eta_counts)
             
             eta_ratio, eta_ratio_error = makeRatio(num_eta_counts, denom_eta_counts)
             eta_ratio_error = handleUncertainties(eta_ratio, eta_ratio_error)
@@ -116,6 +116,8 @@ def count(cp_dict, No_min_associatedLcs):
     num_eta = cp_dict['caloParticleEta'][no_associatedLcs_moreThan0]
     num_phi = cp_dict['caloParticlePhi'][no_associatedLcs_moreThan0]
     num_energy = cp_dict['caloParticleEnergy'][no_associatedLcs_moreThan0]    
+
+    breakpoint()
 
     if False:
         for event in range(0, len(cp_dict)):
