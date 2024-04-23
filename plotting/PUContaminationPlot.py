@@ -52,12 +52,12 @@ class PUContaminationPlot:
         pu_contamination, lc_energy = [], []
         for event in range(0, len(lc_dict)):
             event = str(event+1)
-            for lc in range(0, len(lc_dict[event]['PUContamination'])):
+            for lc in range(0, len(lc_dict[event]['layerClusterPUContribution'])):
                 already_matched = False
-                for score in lc_dict[event]['LC2CPscore'][lc]:
+                for score in lc_dict[event]['recoToSimAssociation'][lc]:
                     if score < 0.2:
-                        pu_contamination.append(lc_dict[event]['PUContamination'][lc])
-                        lc_energy.append(lc_dict[event]['LayerClustersEnergy'][lc])
+                        pu_contamination.append(lc_dict[event]['layerClusterPUContribution'][lc])
+                        lc_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
                         already_matched = True
         return pu_contamination, lc_energy
                 

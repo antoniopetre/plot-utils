@@ -79,15 +79,15 @@ class ResponsePlot:
         response, cumulative_response, cp_energy = [], [], []
         for event in range(0, len(cp_dict)):
             event = str(event+1)
-            for cp in range(0, len(cp_dict[event]['SharedEnergy'])):
+            for cp in range(0, len(cp_dict[event]['sharedEnergy'])):
                 total_shared = 0
-                if (len(cp_dict[event]['SharedEnergy'][cp])) == 0 : continue
-                max_shared_energy = max(cp_dict[event]['SharedEnergy'][cp])
-                max_shared_energy /= cp_dict[event]['CaloParticleEnergy'][cp]
-                for shared in cp_dict[event]['SharedEnergy'][cp] :
+                if (len(cp_dict[event]['sharedEnergy'][cp])) == 0 : continue
+                max_shared_energy = max(cp_dict[event]['sharedEnergy'][cp])
+                max_shared_energy /= cp_dict[event]['caloParticleEnergy'][cp]
+                for shared in cp_dict[event]['sharedEnergy'][cp] :
                     total_shared += shared
                 response.append(max_shared_energy)
-                cumulative_response.append(total_shared / cp_dict[event]['CaloParticleEnergy'][cp])
-                cp_energy.append(cp_dict[event]['CaloParticleEnergy'][cp])
+                cumulative_response.append(total_shared / cp_dict[event]['caloParticleEnergy'][cp])
+                cp_energy.append(cp_dict[event]['caloParticleEnergy'][cp])
         return response, cumulative_response, cp_energy
                     

@@ -103,22 +103,22 @@ def count(lc_dict):
     num_merge_eta, num_merge_phi, num_merge_energy = [], [], []
     for event in range(0, len(lc_dict)):
         event = str(event+1)
-        for lc in range(len(lc_dict[event]['LayerClustersEnergy'])):
-            if len(lc_dict[event]['LC2CPscore'][lc]) == 0 : continue
+        for lc in range(len(lc_dict[event]['layerClusterEnergy'])):
+            if len(lc_dict[event]['recoToSimAssociation'][lc]) == 0 : continue
             n_associated_cps = 0
-            denom_eta.append(lc_dict[event]['LayerClustersEta'][lc])
-            denom_phi.append(lc_dict[event]['LayerClustersPhi'][lc])
-            denom_energy.append(lc_dict[event]['LayerClustersEnergy'][lc])
-            for score in lc_dict[event]['LC2CPscore'][lc]:
+            denom_eta.append(lc_dict[event]['layerClusterEta'][lc])
+            denom_phi.append(lc_dict[event]['layerClusterPhi'][lc])
+            denom_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
+            for score in lc_dict[event]['recoToSimAssociation'][lc]:
                 if score < 0.2:
                     n_associated_cps += 1
             if n_associated_cps > 0:
-                num_eta.append(lc_dict[event]['LayerClustersEta'][lc])         
-                num_phi.append(lc_dict[event]['LayerClustersPhi'][lc])
-                num_energy.append(lc_dict[event]['LayerClustersEnergy'][lc])
+                num_eta.append(lc_dict[event]['layerClusterEta'][lc])         
+                num_phi.append(lc_dict[event]['layerClusterPhi'][lc])
+                num_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
                 if n_associated_cps > 1:
-                    num_merge_eta.append(lc_dict[event]['LayerClustersEta'][lc])
-                    num_merge_phi.append(lc_dict[event]['LayerClustersPhi'][lc])
-                    num_merge_energy.append(lc_dict[event]['LayerClustersEnergy'][lc])
+                    num_merge_eta.append(lc_dict[event]['layerClusterEta'][lc])
+                    num_merge_phi.append(lc_dict[event]['layerClusterPhi'][lc])
+                    num_merge_energy.append(lc_dict[event]['layerClusterEnergy'][lc])
 
     return [[num_eta, num_merge_eta], denom_eta], [[num_phi, num_merge_phi], denom_phi], [[num_energy, num_merge_energy], denom_energy]

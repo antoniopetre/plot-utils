@@ -89,31 +89,3 @@ def fillSCDictionary(root_files_vec, isPF=False, concatenate=False):
             break
                 
     return events_dictionary
-
-
-def pfHitsDictionary(root_files_vec, isPF=False, concatenate=False):
-    tree_string = "lcDumper/pfrechits"
-    if (isPF):
-        tree_string = "lcDumperPF/pfrechits"
-
-    events_dictionary = {}
-    labels_array = ['pfrechitEta', 'pfrechitPhi', 'pfrechitEnergy', 'pfrechitTime']
-    pf = ""
-    if isPF:
-        pf = "PF"
-    #print(">>> Preparing %sSCDictionaries" % s)
-    for i, root_file in enumerate(tqdm(root_files_vec)):
-        f = uproot.open(root_file)
-        tree = f[tree_string]
-        
-        if i == 0:
-            for label in labels_array:
-                events_dictionary[label] = tree[label].array()
-        else:
-            for label in labels_array:
-                events_dictionary[label] = ak.concatenate(events_dictionary[label], tree[label].array(), axis=0)
-                
-        if concatenate == False:
-            break
-                
-    return events_dictionary
