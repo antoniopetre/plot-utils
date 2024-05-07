@@ -14,88 +14,93 @@ class Events_0LCPlots:
         self.legend = legend
         self.c = c
         self.annotate = annotate
-        self.save = save + '/events_0LC/'
         self.caloP = caloP
         self.recHits = recHits
-
-        # Create the directory
-        if not os.path.exists(self.save):
-                # Create the directory
-                os.makedirs(self.save)
-
-        self.makePlot()
         
-    def makePlot(self):
+        # iterate over all root files (which were saved in lc_dict_arr/lcpf_dict)
+        for i in range(len(lc_dict_arr)):
+            self.save = save + f'/file_{i}/events_0LC/'
+            
+            # Create the directory if doesn't exist
+            if not os.path.exists(self.save):
+                # Create the directory
+                os.makedirs(self.save)            
+                
+            # plot results for current root file
+            self.makePlot(self.lc_dict_arr[i], self.lcpf_dict_arr[i], self.caloP[i], self.recHits[i])
+                        
+        
+    def makePlot(self, lc_array, lcpf_array, caloP_array, recHits_array):
         # 1st plot nClustersPerEvent
-        nClustersPerEvent_lc = ak.count(self.lc_dict_arr['layerClusterEnergy'], axis=1)
-        nClustersPerEvent_lcpf = ak.count(self.lcpf_dict_arr['layerClusterEnergy'], axis=1)
+        nClustersPerEvent_lc = ak.count(lc_array['layerClusterEnergy'], axis=1)
+        nClustersPerEvent_lcpf = ak.count(lcpf_array['layerClusterEnergy'], axis=1)
         
 
         binsEta, _ = np.linspace(start=-1.5, stop=1.5, retstep=0.0175)
         binsPhi, _ = np.linspace(start=-np.pi, stop=np.pi, retstep=0.0175)
 
-        clustersEta = ak.flatten(self.lc_dict_arr['layerClusterEta']).to_numpy()
-        clustersPhi = ak.flatten(self.lc_dict_arr['layerClusterPhi']).to_numpy()
+        clustersEta = ak.flatten(lc_array['layerClusterEta']).to_numpy()
+        clustersPhi = ak.flatten(lc_array['layerClusterPhi']).to_numpy()
         self.hist_2d(clustersEta, clustersPhi, xlabel='LC ETA', ylabel='LC PHI',
                 title='',
                 pdf_name='LC_eta_phi.png', logY=False, binning=(binsEta, binsPhi))
 
         mask_noLc_0 = nClustersPerEvent_lc == 0
-        caloEta_noLc_0 = ak.flatten(self.caloP['caloParticleEta'][mask_noLc_0]).to_numpy()
-        caloPhi_noLc_0 = ak.flatten(self.caloP['caloParticlePhi'][mask_noLc_0]).to_numpy()
+        caloEta_noLc_0 = ak.flatten(caloP_array['caloParticleEta'][mask_noLc_0]).to_numpy()
+        caloPhi_noLc_0 = ak.flatten(caloP_array['caloParticlePhi'][mask_noLc_0]).to_numpy()
         self.hist_2d(caloEta_noLc_0, caloPhi_noLc_0, xlabel='CaloP ETA',
                 ylabel='CaloP PHI', title='CaloP when #LC = 0',
                 pdf_name='eta_phi_noLC_0.png', logY=False, binning=(binsEta, binsPhi))
 
-        self.hist_2d(caloEta_noLc_0, ak.flatten(self.caloP['caloParticleEnergy'][mask_noLc_0]).to_numpy(), xlabel='CaloP ETA',
+        self.hist_2d(caloEta_noLc_0, ak.flatten(caloP_array['caloParticleEnergy'][mask_noLc_0]).to_numpy(), xlabel='CaloP ETA',
                 ylabel='CaloP Energy', title='CaloP when #LC = 0',
                 pdf_name='eta_En_noLC_0.png', logY=False,
                 binning=(binsEta, np.array([50,75,100,150,200,250,350,500])))
 
 
-        recHitsEta = ak.flatten(self.recHits['pfrechitEta']).to_numpy()
-        recHitsPhi = ak.flatten(self.recHits['pfrechitPhi']).to_numpy()
+        recHitsEta = ak.flatten(recHits_array['pfrechitEta']).to_numpy()
+        recHitsPhi = ak.flatten(recHits_array['pfrechitPhi']).to_numpy()
 
         self.hist_2d(recHitsEta, recHitsPhi, xlabel='RecHits ETA',
                 ylabel='RecHits PHI', title='',
                 pdf_name='eta_phi_recHits.png', logY=False, binning=(binsEta, binsPhi))
 
-        recHitsEta_noLc_0 = ak.flatten(self.recHits['pfrechitEta'][mask_noLc_0]).to_numpy()
-        recHitsPhi_noLc_0 = ak.flatten(self.recHits['pfrechitPhi'][mask_noLc_0]).to_numpy()
+        recHitsEta_noLc_0 = ak.flatten(recHits_array['pfrechitEta'][mask_noLc_0]).to_numpy()
+        recHitsPhi_noLc_0 = ak.flatten(recHits_array['pfrechitPhi'][mask_noLc_0]).to_numpy()
         self.hist_2d(recHitsEta_noLc_0, recHitsPhi_noLc_0,
                 xlabel='RecHits ETA', ylabel='RecHits PHI', title='RecHits when #LC = 0',
                 pdf_name='eta_phi_recHits_noLc_0.png', logY=False, binning=(binsEta, binsPhi))
         
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticleEnergy'][mask_noLc_0]),
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticleEnergy'][mask_noLc_0]),
                 xlabel='Energy', pdf_name='caloParticlesEnergy_noLc_0.png')
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticleEta'][mask_noLc_0]),
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticleEta'][mask_noLc_0]),
                 xlabel=r'\eta', pdf_name='caloParticlesEta_noLc_0.png')
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticlePhi'][mask_noLc_0]),
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticlePhi'][mask_noLc_0]),
                 xlabel=r'\phi', pdf_name='caloParticlesPhi_noLc_0.png')
 
         #x = self.caloP['caloParticleEnergy'][mask_noLc_0]
         #y = self.caloP['caloParticleEta'][mask_noLc_0]
-        CaloPhi_masked = self.caloP['caloParticlePhi'][mask_noLc_0]
+        CaloPhi_masked = caloP_array['caloParticlePhi'][mask_noLc_0]
 
-        No_total_ev = len(self.lc_dict_arr['layerClusterNumberOfHits'])
+        No_total_ev = len(lc_array['layerClusterNumberOfHits'])
 
         En_cut = 50
-        mask_noLC_0_EnCut = self.caloP['caloParticleEnergy'][mask_noLc_0] > En_cut
+        mask_noLC_0_EnCut = caloP_array['caloParticleEnergy'][mask_noLc_0] > En_cut
         no_events_noLc_0_EnCut = ak.count_nonzero(mask_noLC_0_EnCut)
 
         string0 = f'1st cut: # LC/event = 0 \n 2nd cut: En of CaloP > {En_cut} \n {no_events_noLc_0_EnCut}/{No_total_ev} events'
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticleEnergy'][mask_noLc_0][mask_noLC_0_EnCut]), xlabel='CaloParticle Energy',
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticleEnergy'][mask_noLc_0][mask_noLC_0_EnCut]), xlabel='CaloParticle Energy',
                             pdf_name='caloParticlesEnergy_NoLC_0_EnCut.png', annotate=string0)
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticleEta'][mask_noLc_0][mask_noLC_0_EnCut]), xlabel=r'CaloParticle \eta',
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticleEta'][mask_noLc_0][mask_noLC_0_EnCut]), xlabel=r'CaloParticle \eta',
                             pdf_name='caloParticlesEta_NoLC_0_EnCut.png', annotate=string0)
 
         eta_cut = 0.2
-        mask_noLC_0_EtaCut = abs(self.caloP['caloParticleEta'][mask_noLc_0]) > eta_cut
+        mask_noLC_0_EtaCut = abs(caloP_array['caloParticleEta'][mask_noLc_0]) > eta_cut
         no_events_noLC_0_EtaCut = np.count_nonzero(mask_noLC_0_EtaCut)
         string1 = f'1st cut: # LC/event = 0 \n 2nd cut: abs(eta) of CaloP > {eta_cut} \n {no_events_noLC_0_EtaCut}/{No_total_ev} events'
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticleEnergy'][mask_noLc_0][mask_noLC_0_EtaCut]), xlabel='CaloParticle Energy',
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticleEnergy'][mask_noLc_0][mask_noLC_0_EtaCut]), xlabel='CaloParticle Energy',
                             pdf_name='caloParticlesEnergy_NoLC_0_EtaCut.png', annotate=string1)
-        self.plot_hist1d_debug(ak.flatten(self.caloP['caloParticleEta'][mask_noLc_0][mask_noLC_0_EtaCut]), xlabel=r'CaloParticle \eta',
+        self.plot_hist1d_debug(ak.flatten(caloP_array['caloParticleEta'][mask_noLc_0][mask_noLC_0_EtaCut]), xlabel=r'CaloParticle \eta',
                             pdf_name='caloParticlesEta_NoLC_0_EtaCut.png', annotate=string1)
 
 

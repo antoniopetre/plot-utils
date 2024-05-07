@@ -11,9 +11,14 @@ def fillLCDictionary(root_files_vec, isPF=False, concatenate=False):
     if (isPF):
         tree_string = "lcDumperPF/layerclusters"
 
-    events_dictionary = {}
     labels_array = ['layerClusterEnergy', 'layerClusterEta', 'layerClusterPhi', 'recoToSimAssociation',
                     'AssociatedCP', 'layerClusterLayer', 'layerClusterPUContribution', 'layerClusterNumberOfHits']
+    
+    dictionary = {}
+    for i in labels_array:
+        dictionary[i] = []
+            
+    events_array = []
 
     events_idx = 0
     pf = ""
@@ -21,74 +26,85 @@ def fillLCDictionary(root_files_vec, isPF=False, concatenate=False):
         pf = "PF"
     print(">>> Preparing %sLCDictionaries" % pf)
     for i, root_file in enumerate(tqdm(root_files_vec)):
+        
+        events_array_temporal = ak.Array([dictionary])
         f = uproot.open(root_file)
         tree = f[tree_string]
-        if i == 0:
-            for label in labels_array:
-                events_dictionary[label] = tree[label].array()
-        else:
-            for label in labels_array:
-                events_dictionary[label] = ak.concatenate(events_dictionary[label], tree[label].array(), axis=0)
+        for label in labels_array:
+            events_array_temporal[label] = tree[label].array()
+        
+        events_array.append(events_array_temporal)
 
         if concatenate == False:
             break
 
-    return events_dictionary
+    return events_array
 
 def fillCPDictionary(root_files_vec, isPF=False, concatenate=False):
     tree_string = "lcDumper/caloparticles"
     if (isPF):
         tree_string = "lcDumperPF/caloparticles"
 
-    events_dictionary = {}
     labels_array = ['caloParticleEnergy', 'caloParticleEta', 'caloParticlePhi', 'simToRecoAssociation',
                     'AssociatedLC', 'sharedEnergy']
+    dictionary = {}
+    for i in labels_array:
+        dictionary[i] = []
+        
+    events_array = []
+    
     pf = ""
     if isPF:
         pf = "PF"
     print(">>> Preparing %sCPDictionaries" % pf)
     for i, root_file in enumerate(tqdm(root_files_vec)):
+        
+        events_array_temporal = ak.Array([dictionary])
         f = uproot.open(root_file)
         tree = f[tree_string]
-        if i == 0:
-            for label in labels_array:
-                events_dictionary[label] = tree[label].array()
-        else:
-            for label in labels_array:
-                events_dictionary[label] = ak.concatenate(events_dictionary[label], tree[label].array(), axis=0)
-                
+        for label in labels_array:
+            events_array_temporal[label] = tree[label].array()
+            
+        events_array.append(events_array_temporal)
+       
         if concatenate == False:
             break
                 
-    return events_dictionary
+    return events_array
 
 def fillSCDictionary(root_files_vec, isPF=False, concatenate=False):
     tree_string = "lcDumper/simclusters"
     if (isPF):
         tree_string = "lcDumperPF/simclusters"
 
-    events_dictionary = {}
     labels_array = ['simClusterEnergy', 'simClusterEta', 'simClusterPhi', 'simToRecoAssociation',
                     'AssociatedLC', 'simClusterLayer', 'sharedEnergy']
+    
+    dictionary = {}
+    for i in labels_array:
+        dictionary[i] = []
+        
+    events_array = []
+    
     pf = ""
     if isPF:
         pf = "PF"
     #print(">>> Preparing %sSCDictionaries" % s)
     for i, root_file in enumerate(tqdm(root_files_vec)):
+        
+        events_array_temporal = ak.Array([dictionary])
         f = uproot.open(root_file)
         tree = f[tree_string]
         
-        if i == 0:
-            for label in labels_array:
-                events_dictionary[label] = tree[label].array()
-        else:
-            for label in labels_array:
-                events_dictionary[label] = ak.concatenate(events_dictionary[label], tree[label].array(), axis=0)
-                
+        for label in labels_array:
+            events_array_temporal[label] = tree[label].array()
+       
+        events_array.append(events_array_temporal)        
+        
         if concatenate == False:
             break
                 
-    return events_dictionary
+    return events_array
 
 
 def pfHitsDictionary(root_files_vec, isPF=False, concatenate=False):
@@ -96,24 +112,30 @@ def pfHitsDictionary(root_files_vec, isPF=False, concatenate=False):
     if (isPF):
         tree_string = "lcDumperPF/pfrechits"
 
-    events_dictionary = {}
     labels_array = ['pfrechitEta', 'pfrechitPhi', 'pfrechitEnergy', 'pfrechitTime']
+    
+    dictionary = {}
+    for i in labels_array:
+        dictionary[i] = []
+        
+    events_array = []
+    
     pf = ""
     if isPF:
         pf = "PF"
     #print(">>> Preparing %sSCDictionaries" % s)
     for i, root_file in enumerate(tqdm(root_files_vec)):
+        
+        events_array_temporal = ak.Array([dictionary])
         f = uproot.open(root_file)
         tree = f[tree_string]
         
-        if i == 0:
-            for label in labels_array:
-                events_dictionary[label] = tree[label].array()
-        else:
-            for label in labels_array:
-                events_dictionary[label] = ak.concatenate(events_dictionary[label], tree[label].array(), axis=0)
+        for label in labels_array:
+            events_array_temporal[label] = tree[label].array()
+            
+        events_array.append(events_array_temporal)
                 
         if concatenate == False:
             break
                 
-    return events_dictionary
+    return events_array
