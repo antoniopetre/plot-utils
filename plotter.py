@@ -14,6 +14,7 @@ from plotting.PUContaminationPlot import PUContaminationPlot
 from plotting.ClusterPlots import ClusterPlots
 from plotting.events_0LCPlots import Events_0LCPlots
 from plotting.EfficiencyPlotsComparison import EfficiencyPlots_comparison
+from plotting.caloP_kin import CaloP_kin
 
 import numpy as np
 
@@ -66,7 +67,17 @@ if __name__ == "__main__":
         lcpf_dict[i] = lcpf_dict[i][maskperEvent_eventsWithCaloP]
         cppf_dict[i] = cppf_dict[i][maskperEvent_eventsWithCaloP]
         scpf_dict[i] = scpf_dict[i][maskperEvent_eventsWithCaloP]
-
+        
+    if configuration["same_caloP"]:
+        for i in range(len(lc_dict) - 1):
+            mask_En = cp_dict[i]['caloParticleEnergy'] == cp_dict[i+1]['caloParticleEnergy']
+            mask_Eta = cp_dict[i]['caloParticleEta'] == cp_dict[i+1]['caloParticleEta']
+            mask_Phi = cp_dict[i]['caloParticlePhi'] == cp_dict[i+1]['caloParticlePhi']
+            
+            if (ak.count_nonzero(mask_En) != ak.num(mask_En, axis=0)) or (ak.count_nonzero(mask_Eta) != ak.num(mask_Eta, axis=0)) or \
+                (ak.count_nonzero(mask_Phi) != ak.num(mask_Phi, axis=0)):
+                raise Exception("Check ordering of the calo Particle (events)")
+                
     stop = time.time()
 
     print(">>> Dictionaries ready; elapsed time: {:.2f} seconds".format(stop-start))
@@ -77,14 +88,18 @@ if __name__ == "__main__":
 
     print("Create Cluster Plots")
     #ClusterPlots(lc_dict, lcpf_dict, legend=["LayerCluster", "PFClusters"], c=["red", "black"],
-    #                save=configuration["SaveDirectory"], caloP=cp_dict, recHits=pfRec_dict)    
+    #                save=configuration["SaveDirectory"], caloP=cp_dict, recHits=pfRec_dict)
     
+    print("Create caloP plots")
+    CaloP_kin(cp_dict, cppf_dict, lc_dict_arr=lc_dict, lcpf_dict=lcpf_dict, legend=["Calo", "Calo PF"],
+              c=["red", "black"], annotate=None, save=configuration["SaveDirectory"], recHits=pfRec_dict)
+        
     if (doPFComparison):
         print("Create Efficiency Plots with comparison")
-        EfficiencyPlots([lc_dict, lcpf_dict], [cp_dict, cppf_dict], cut_sim2Reco=[1.0, 0.2],
-                        legend=["CLUE", "PFClustering"],
-                        annotate=configuration["Annotate"],
-                        save=configuration["SaveDirectory"])
+        #EfficiencyPlots([lc_dict, lcpf_dict], [cp_dict, cppf_dict], cut_sim2Reco=[1.0, 0.2],
+        #                legend=["CLUE", "PFClustering"],
+        #                annotate=configuration["Annotate"],
+        #                save=configuration["SaveDirectory"])
         print("Create Efficiency Plots between different kappa")
         EfficiencyPlots_comparison(
                         [lc_dict[0], lc_dict[1], lc_dict[2], lc_dict[3], lc_dict[4], lc_dict[5], lcpf_dict[0]],
